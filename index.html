@@ -47,9 +47,9 @@
     transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  /* HOLD状態: 手のひらの傾きをイラスト通りに大きく */
+  /* HOLD状態: 手のひらの傾き */
   .is-holding #hand-wrapper {
-    transform: rotate(-35deg); /* 傾きを増加 */
+    transform: rotate(-35deg); 
   }
 
   /* 2. 指の動き */
@@ -60,30 +60,27 @@
   /* === HOLD State Animations === */
   .is-holding .phone { opacity: 1; }
 
-  /* 4本の指の動き: 根元は非表示、指先がケータイの上端をフックする姿勢 */
-  
-  /* 小指 */
+  /* 4本の指の動き: ケータイの上端をフックする姿勢 */
   .is-holding #little-base { transform: rotate(15deg); opacity: 0; } 
-  .is-holding #little-tip  { transform: rotate(95deg); } /* 指先をさらに大きく曲げる */
-
-  /* 薬指 */
+  .is-holding #little-tip  { transform: rotate(95deg); } 
   .is-holding #ring-base   { transform: rotate(5deg); opacity: 0; }
   .is-holding #ring-tip    { transform: rotate(90deg); } 
-
-  /* 中指 */
   .is-holding #middle-base { transform: rotate(-5deg); opacity: 0; }
   .is-holding #middle-tip  { transform: rotate(85deg); }
-
-  /* 人差し指 */
   .is-holding #index-base  { transform: rotate(-15deg); opacity: 0; }
   .is-holding #index-tip   { transform: rotate(80deg); } 
-
+  
   /* 親指 (Thumb) - ケータイの側面にしっかり密着 */
+  #thumb-group {
+    transform-origin: 320px 480px;
+    transition: transform 0.6s;
+  }
   .is-holding #thumb-group { 
-    transform: translate(-10px, -10px) rotate(-45deg); 
+    /* 修正: 親指が手のひらに沿って移動し、ケータイの側面に当たるよう調整 */
+    transform: translate(-5px, 0px) rotate(-30deg); /* 移動量を減らし、回転を手のひらの動きに合わせる */
   }
   .is-holding .thumb-tip { 
-    transform: rotate(25deg); /* 親指の先を反らせて固定 */
+    transform: rotate(25deg); 
   }
   
   /* 指先の追従用スタイル */
@@ -168,7 +165,7 @@
       <g id="thumb-group" style="transform-origin: 320px 480px;">
         <ellipse class="skin" cx="320" cy="480" rx="28" ry="38" transform="rotate(-20 320 480)"/>
         <rect class="skin" x="305" y="410" width="30" height="70" rx="12" transform="rotate(-15 320 480)" />
-        <g class="thumb-tip" style="transform-origin: 329 410;">
+        <g class="thumb-tip" style="transform-origin: 329px 410px;">
           <rect class="skin" x="315" y="340" width="28" height="70" rx="10" transform="rotate(-15 329 410)" />
           <path class="nail" d="M325 345 Q335 335 345 350 L340 360 L320 355 Z" transform="rotate(-15 329 410)"/>
           <circle class="joint" cx="329" cy="410" r="13" />
@@ -198,3 +195,4 @@
 
 </body>
 </html>
+
