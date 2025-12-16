@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-<title>Robot Hand: Final Corrected Grip</title>
+<title>Robot Hand: Final Corrected Grip & Proportion</title>
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -16,40 +16,23 @@
     font-family: sans-serif;
   }
 
-  /* UI Controls */
+  /* UI Controls (省略なし) */
   #controls {
-    position: fixed;
-    bottom: 30px;
-    display: flex;
-    gap: 20px;
-    z-index: 100;
+    position: fixed; bottom: 30px; display: flex; gap: 20px; z-index: 100;
   }
   button {
-    background: #222;
-    color: #ccc;
-    border: 1px solid #444;
-    padding: 12px 28px;
-    border-radius: 30px;
-    font-size: 14px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
+    background: #222; color: #ccc; border: 1px solid #444;
+    padding: 12px 28px; border-radius: 30px; font-size: 14px;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.3s ease; font-weight: bold;
   }
   button:hover { background: #444; color: #fff; }
   button.active { 
-    background: #f0c040; 
-    color: #000; 
-    border-color: #f0c040; 
+    background: #f0c040; color: #000; border-color: #f0c040; 
     box-shadow: 0 0 15px rgba(240, 192, 64, 0.4);
   }
 
-  /* SVG Styling */
-  svg {
-    height: 90vh;
-    width: 100%;
-    max-width: 600px;
-  }
+  /* SVG Styling (省略なし) */
+  svg { height: 90vh; width: 100%; max-width: 600px; }
 
   /* --- Parts Styles --- */
   .skin { fill: #e6e2d3; stroke: #1a1a1a; stroke-width: 2.5px; }
@@ -59,25 +42,21 @@
   
   /* The Phone */
   .phone {
-    fill: #4da6ff;
-    stroke: #111;
-    stroke-width: 3px;
-    rx: 10; ry: 10;
-    opacity: 0;
-    transition: opacity 0.4s ease 0.2s;
+    fill: #4da6ff; stroke: #111; stroke-width: 3px; rx: 10; ry: 10;
+    opacity: 0; transition: opacity 0.4s ease 0.2s;
   }
 
   /* --- Animations (CSS Transforms) --- */
   
   /* 1. 全体の回転 (手のひらと指) */
   #hand-wrapper {
-    transform-origin: 200px 480px; /* 手首のすぐ上あたりを軸に */
+    transform-origin: 200px 480px;
     transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  /* HOLD状態: 小指側（右下方向）に回転 (画像の状態に合わせる) */
+  /* HOLD状態: 小指側（左下方向）に大きく回転 (画像の状態に合わせる) */
   .is-holding #hand-wrapper {
-    transform: rotate(-15deg); /* わずかに小指側に傾ける */
+    transform: rotate(-40deg); 
   }
 
   /* 2. 指の動き */
@@ -88,37 +67,37 @@
   /* === HOLD State Animations === */
   .is-holding .phone { opacity: 1; }
 
-  /* 4本の指の動き: ケータイを包み込む（画像に合わせて、根元を大きく曲げる） */
+  /* 4本の指の動き */
   
   /* 小指 */
-  .is-holding #little-base { transform: rotate(20deg); } 
-  .is-holding #little-tip  { transform: rotate(-85deg); } /* 指先は深く曲がる */
+  .is-holding #little-base { transform: rotate(25deg); opacity: 0; } /* 非表示 */
+  .is-holding #little-tip  { transform: rotate(-95deg); } /* 末節骨を短く見せるため角度を深く */
 
   /* 薬指 */
-  .is-holding #ring-base   { transform: rotate(10deg); }
-  .is-holding #ring-tip    { transform: rotate(-85deg); }
+  .is-holding #ring-base   { transform: rotate(15deg); opacity: 0; } /* 非表示 */
+  .is-holding #ring-tip    { transform: rotate(-90deg); }
 
   /* 中指 */
-  .is-holding #middle-base { transform: rotate(0deg); }
-  .is-holding #middle-tip  { transform: rotate(-80deg); }
+  .is-holding #middle-base { transform: rotate(5deg); opacity: 0; } /* 非表示 */
+  .is-holding #middle-tip  { transform: rotate(-85deg); }
 
   /* 人差し指 */
-  .is-holding #index-base  { transform: rotate(-10deg); }
-  .is-holding #index-tip   { transform: rotate(-80deg); }
+  .is-holding #index-base  { transform: rotate(-5deg); opacity: 0; } /* 非表示 */
+  .is-holding #index-tip   { transform: rotate(-85deg); }
 
-  /* 親指 (Thumb) - ケータイを支える動き */
+  /* 親指 (Thumb) */
   .is-holding #thumb-group { 
-    transform: translate(0, -10px) rotate(-40deg); /* ケータイの側面に来るように移動＆回転 */
+    transform: translate(0, -10px) rotate(-50deg); 
   }
   .is-holding .thumb-tip { 
-    transform: rotate(15deg); /* 親指の先を反らせてケータイに当てる */
+    transform: rotate(20deg); 
   }
   
   /* 指先の追従用スタイル */
-  .is-holding .finger-base-tracker:nth-child(1) { transform: rotate(20deg); } /* 小指 */
-  .is-holding .finger-base-tracker:nth-child(2) { transform: rotate(10deg); } /* 薬指 */
-  .is-holding .finger-base-tracker:nth-child(3) { transform: rotate(0deg); } /* 中指 */
-  .is-holding .finger-base-tracker:nth-child(4) { transform: rotate(-10deg); } /* 人差し指 */
+  .is-holding .finger-base-tracker:nth-child(1) { transform: rotate(25deg); }
+  .is-holding .finger-base-tracker:nth-child(2) { transform: rotate(15deg); }
+  .is-holding .finger-base-tracker:nth-child(3) { transform: rotate(5deg); }
+  .is-holding .finger-base-tracker:nth-child(4) { transform: rotate(-5deg); }
   .finger-base-tracker { transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
 
 </style>
@@ -144,51 +123,46 @@
       <path class="dark-part" opacity="0.6" d="M150 420 Q200 450 250 420 L240 500 Q200 520 160 500 Z" />
       
       <g id="little-base" class="finger-base" style="transform-origin: 130px 380px;">
-        <rect class="skin" x="118" y="290" width="24" height="90" rx="10" />
-        <circle class="joint" cx="130" cy="380" r="14" />
+        <rect class="skin" x="118" y="300" width="24" height="80" rx="10" /> <circle class="joint" cx="130" cy="380" r="14" />
       </g>
       <g id="ring-base" class="finger-base" style="transform-origin: 175px 360px;">
-        <rect class="skin" x="163" y="260" width="24" height="100" rx="10" />
+        <rect class="skin" x="163" y="270" width="24" height="90" rx="10" />
         <circle class="joint" cx="175" cy="360" r="14" />
       </g>
       <g id="middle-base" class="finger-base" style="transform-origin: 225px 360px;">
-        <rect class="skin" x="213" y="255" width="24" height="105" rx="10" />
+        <rect class="skin" x="213" y="260" width="24" height="100" rx="10" />
         <circle class="joint" cx="225" cy="360" r="14" />
       </g>
       <g id="index-base" class="finger-base" style="transform-origin: 275px 380px;">
-        <rect class="skin" x="263" y="280" width="24" height="100" rx="10" />
+        <rect class="skin" x="263" y="290" width="24" height="90" rx="10" />
         <circle class="joint" cx="275" cy="380" r="14" />
       </g>
     </g>
 
-    <rect id="phone" class="phone" x="145" y="190" width="110" height="260" />
+    <rect id="phone" class="phone" x="170" y="190" width="100" height="260" />
 
     <g id="layer-front">
       <g class="finger-base-tracker" style="transform-origin: 130px 380px;">
          <g id="little-tip" class="finger-tip" style="transform-origin: 130px 290px;">
-          <rect class="skin" x="118" y="200" width="24" height="100" rx="10" />
-          <path class="nail" d="M122 205 Q130 195 138 205 L138 220 L122 220 Z" />
+          <rect class="skin" x="118" y="230" width="24" height="70" rx="10" /> <path class="nail" d="M122 235 Q130 225 138 235 L138 250 L122 250 Z" />
           <circle class="joint" cx="130" cy="290" r="12" />
         </g>
       </g>
       <g class="finger-base-tracker" style="transform-origin: 175px 360px;">
         <g id="ring-tip" class="finger-tip" style="transform-origin: 175px 260px;">
-          <rect class="skin" x="163" y="150" width="24" height="120" rx="10" />
-          <path class="nail" d="M167 155 Q175 145 183 155 L183 170 L167 170 Z" />
+          <rect class="skin" x="163" y="200" width="24" height="60" rx="10" /> <path class="nail" d="M167 205 Q175 195 183 205 L183 220 L167 220 Z" />
           <circle class="joint" cx="175" cy="260" r="12" />
         </g>
       </g>
       <g class="finger-base-tracker" style="transform-origin: 225px 360px;">
         <g id="middle-tip" class="finger-tip" style="transform-origin: 225px 255px;">
-          <rect class="skin" x="213" y="140" width="24" height="125" rx="10" />
-          <path class="nail" d="M217 145 Q225 135 233 145 L233 160 L217 160 Z" />
+          <rect class="skin" x="213" y="195" width="24" height="60" rx="10" /> <path class="nail" d="M217 200 Q225 190 233 200 L233 215 L217 215 Z" />
           <circle class="joint" cx="225" cy="255" r="12" />
         </g>
       </g>
       <g class="finger-base-tracker" style="transform-origin: 275px 380px;">
         <g id="index-tip" class="finger-tip" style="transform-origin: 275px 280px;">
-          <rect class="skin" x="263" y="170" width="24" height="120" rx="10" />
-          <path class="nail" d="M267 175 Q275 165 283 175 L283 190 L267 190 Z" />
+          <rect class="skin" x="263" y="220" width="24" height="60" rx="10" /> <path class="nail" d="M267 225 Q275 215 283 225 L283 240 L267 240 Z" />
           <circle class="joint" cx="275" cy="280" r="12" />
         </g>
       </g>
@@ -226,4 +200,3 @@
 
 </body>
 </html>
-
