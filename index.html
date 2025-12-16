@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-<title>Robot Hand: Relax vs Hold</title>
+<title>Robot Hand: Realistic Grip Layering</title>
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -25,120 +25,84 @@
     z-index: 100;
   }
   button {
-    background: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 12px 24px;
+    background: #222;
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 12px 28px;
     border-radius: 30px;
-    font-size: 16px;
+    font-size: 14px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    font-weight: bold;
   }
-  button:hover { background: #555; }
-  button.active { background: #f0c040; color: #000; border-color: #f0c040; }
+  button:hover { background: #444; color: #fff; }
+  button.active { 
+    background: #f0c040; 
+    color: #000; 
+    border-color: #f0c040; 
+    box-shadow: 0 0 15px rgba(240, 192, 64, 0.4);
+  }
 
   /* SVG Styling */
   svg {
     height: 90vh;
     width: 100%;
     max-width: 600px;
-    /* デバッグ用ボーダーがあれば外してください */
   }
 
-  /* --- Robot Parts Design --- */
-  .skin {
-    fill: #e6e2d3; /* 画像に近いベージュ */
-    stroke: #333;
-    stroke-width: 3px;
-  }
-  .dark-part {
-    fill: #666; /* メカニカルなグレー部分 */
-    stroke: #333;
-    stroke-width: 2px;
-  }
-  .joint {
-    fill: #444; /* 関節の円 */
-    stroke: #222;
-    stroke-width: 2px;
-  }
+  /* --- Parts Styles --- */
+  .skin { fill: #e6e2d3; stroke: #1a1a1a; stroke-width: 2.5px; }
+  .dark-part { fill: #555; stroke: #1a1a1a; stroke-width: 2px; }
+  .joint { fill: #333; stroke: #111; stroke-width: 2px; }
+  .nail { fill: #ddd; stroke: #1a1a1a; stroke-width: 1px; }
   
-  /* The Phone (Blue Bar) */
+  /* The Phone */
   .phone {
     fill: #4da6ff;
-    stroke: #222;
+    stroke: #111;
     stroke-width: 3px;
-    rx: 12; ry: 12; /* 角丸 */
+    rx: 10; ry: 10;
     opacity: 0;
-    transform: scale(0.8);
-    transform-origin: center;
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* バウンス効果 */
+    transition: opacity 0.4s ease 0.2s;
   }
 
-  /* --- Animation Logic (CSS Transitions) --- */
+  /* --- Animations (CSS Transforms) --- */
   
-  /* 各パーツの基準点設定 */
-  .finger-group {
+  /* 1. 全体の回転 */
+  #hand-wrapper {
+    transform-origin: 200px 450px;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .is-holding #hand-wrapper { transform: rotate(90deg); }
+
+  /* 2. 指の動き */
+  .finger-base, .finger-tip, #thumb-group, .thumb-tip {
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
   }
-  .distal-phalanx {
-    /* 指先部分 */
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  }
 
-  /* === HOLD STATE DEFINITIONS === */
-  
-  /* スマホの出現 */
-  .is-holding .phone {
-    opacity: 1;
-    transform: scale(1);
-  }
+  /* === HOLD State Animations === */
+  .is-holding .phone { opacity: 1; }
 
-  /* 小指 (Little) */
-  #little { transform-origin: 130px 380px; }
-  #little .distal { transform-origin: 130px 290px; } /* 第二関節 */
-  
-  .is-holding #little { transform: rotate(15deg) translate(20px, 0); }
-  .is-holding #little .distal { transform: rotate(-100deg); }
+  /* 小指 */
+  .is-holding #little-base { transform: rotate(18deg) translate(5px, 0); }
+  .is-holding #little-tip  { transform: rotate(-100deg); }
 
-  /* 薬指 (Ring) */
-  #ring { transform-origin: 175px 360px; }
-  #ring .distal { transform-origin: 175px 260px; }
-  
-  .is-holding #ring { transform: rotate(8deg) translate(10px, 0); }
-  .is-holding #ring .distal { transform: rotate(-95deg); }
+  /* 薬指 */
+  .is-holding #ring-base   { transform: rotate(10deg); }
+  .is-holding #ring-tip    { transform: rotate(-100deg); }
 
-  /* 中指 (Middle) */
-  #middle { transform-origin: 225px 360px; }
-  #middle .distal { transform-origin: 225px 255px; }
+  /* 中指 */
+  .is-holding #middle-base { transform: rotate(-2deg); }
+  .is-holding #middle-tip  { transform: rotate(-100deg); }
 
-  .is-holding #middle { transform: rotate(-5deg); }
-  .is-holding #middle .distal { transform: rotate(-95deg); }
+  /* 人差し指 */
+  .is-holding #index-base  { transform: rotate(-15deg); }
+  .is-holding #index-tip   { transform: rotate(-100deg); }
 
-  /* 人差し指 (Index) */
-  #index { transform-origin: 275px 380px; }
-  #index .distal { transform-origin: 275px 280px; }
-
-  .is-holding #index { transform: rotate(-12deg); }
-  .is-holding #index .distal { transform: rotate(-95deg); }
-
-  /* 親指 (Thumb) */
-  /* 親指は構造が違うのでグループごと動かす */
-  #thumb-group {
-    transform-origin: 320px 480px; /* 手首付近の付け根 */
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .thumb-tip {
-    transform-origin: 360px 420px; /* 第一関節 */
-    transition: transform 0.6s;
-  }
-
-  /* 親指のHOLD: 内側に倒れ込み、指先を押さえつける */
-  .is-holding #thumb-group {
-    transform: rotate(-35deg) translate(-20px, -10px);
-  }
-  .is-holding .thumb-tip {
-    transform: rotate(-20deg);
-  }
+  /* 親指 */
+  .is-holding #thumb-group { transform: rotate(-30deg) translate(-15px, -10px); }
+  .is-holding .thumb-tip { transform: rotate(-25deg); }
 
 </style>
 </head>
@@ -149,75 +113,99 @@
   <button id="btnHold" onclick="setState('hold')">HOLD</button>
 </div>
 
-<svg viewBox="0 0 400 700" id="canvas">
-  
-  <path class="dark-part" d="M140 540 L140 650 L260 650 L260 540 Z" />
-  <ellipse class="joint" cx="200" cy="540" rx="60" ry="20" /> <path class="skin" d="
-    M130 380 
-    L110 460 
-    Q140 560 200 560 
-    Q260 560 290 460 
-    L320 420 
-    L275 380 
-    L225 360 
-    L175 360 
-    Z" />
-  <path class="dark-part" opacity="0.5" d="M150 420 Q200 450 250 420 L240 500 Q200 520 160 500 Z" />
+<svg viewBox="0 0 400 800" id="canvas">
+  <g id="hand-wrapper">
 
-  <rect id="phone" class="phone" x="140" y="180" width="120" height="240" />
+    <g id="layer-back">
+      <path class="dark-part" d="M140 540 L140 680 L260 680 L260 540 Z" />
+      <ellipse class="joint" cx="200" cy="540" rx="65" ry="22" />
+      <path class="skin" d="M125 380 L110 460 Q140 560 200 560 Q260 560 290 460 L315 420 L275 380 L225 360 L175 360 Z" />
+      <path class="dark-part" opacity="0.6" d="M150 420 Q200 450 250 420 L240 500 Q200 520 160 500 Z" />
 
-  <g id="little" class="finger-group">
-    <rect class="skin" x="118" y="290" width="24" height="90" rx="10" />
-    <circle class="joint" cx="130" cy="380" r="14" /> <g class="distal">
-      <rect class="skin" x="118" y="200" width="24" height="100" rx="10" />
-      <circle class="joint" cx="130" cy="290" r="12" /> </g>
-  </g>
+      <g id="little-base" class="finger-base" style="transform-origin: 130px 380px;">
+        <rect class="skin" x="118" y="290" width="24" height="90" rx="10" />
+        <circle class="joint" cx="130" cy="380" r="14" />
+      </g>
+      <g id="ring-base" class="finger-base" style="transform-origin: 175px 360px;">
+        <rect class="skin" x="163" y="260" width="24" height="100" rx="10" />
+        <circle class="joint" cx="175" cy="360" r="14" />
+      </g>
+      <g id="middle-base" class="finger-base" style="transform-origin: 225px 360px;">
+        <rect class="skin" x="213" y="255" width="24" height="105" rx="10" />
+        <circle class="joint" cx="225" cy="360" r="14" />
+      </g>
+      <g id="index-base" class="finger-base" style="transform-origin: 275px 380px;">
+        <rect class="skin" x="263" y="280" width="24" height="100" rx="10" />
+        <circle class="joint" cx="275" cy="380" r="14" />
+      </g>
+    </g>
 
-  <g id="ring" class="finger-group">
-    <rect class="skin" x="163" y="260" width="24" height="100" rx="10" />
-    <circle class="joint" cx="175" cy="360" r="14" />
-    <g class="distal">
-      <rect class="skin" x="163" y="150" width="24" height="120" rx="10" />
-      <circle class="joint" cx="175" cy="260" r="12" />
+    <rect id="phone" class="phone" x="145" y="200" width="110" height="220" />
+
+    <g id="layer-front">
+      <g class="finger-base-tracker" style="transform-origin: 130px 380px;">
+         <g id="little-tip" class="finger-tip" style="transform-origin: 130px 290px;">
+          <rect class="skin" x="118" y="200" width="24" height="100" rx="10" />
+          <path class="nail" d="M122 205 Q130 195 138 205 L138 220 L122 220 Z" />
+          <circle class="joint" cx="130" cy="290" r="12" />
+        </g>
+      </g>
+      
+      <g class="finger-base-tracker" style="transform-origin: 175px 360px;">
+        <g id="ring-tip" class="finger-tip" style="transform-origin: 175px 260px;">
+          <rect class="skin" x="163" y="150" width="24" height="120" rx="10" />
+          <path class="nail" d="M167 155 Q175 145 183 155 L183 170 L167 170 Z" />
+          <circle class="joint" cx="175" cy="260" r="12" />
+        </g>
+      </g>
+
+      <g class="finger-base-tracker" style="transform-origin: 225px 360px;">
+        <g id="middle-tip" class="finger-tip" style="transform-origin: 225px 255px;">
+          <rect class="skin" x="213" y="140" width="24" height="125" rx="10" />
+          <path class="nail" d="M217 145 Q225 135 233 145 L233 160 L217 160 Z" />
+          <circle class="joint" cx="225" cy="255" r="12" />
+        </g>
+      </g>
+
+      <g class="finger-base-tracker" style="transform-origin: 275px 380px;">
+        <g id="index-tip" class="finger-tip" style="transform-origin: 275px 280px;">
+          <rect class="skin" x="263" y="170" width="24" height="120" rx="10" />
+          <path class="nail" d="M267 175 Q275 165 283 175 L283 190 L267 190 Z" />
+          <circle class="joint" cx="275" cy="280" r="12" />
+        </g>
+      </g>
+
+      <g id="thumb-group" style="transform-origin: 320px 480px;">
+        <ellipse class="skin" cx="320" cy="480" rx="28" ry="38" transform="rotate(-20 320 480)"/>
+        <rect class="skin" x="305" y="410" width="30" height="70" rx="12" transform="rotate(-15 320 480)" />
+        <g class="thumb-tip" style="transform-origin: 329 410;">
+          <rect class="skin" x="315" y="340" width="28" height="70" rx="10" transform="rotate(-15 329 410)" />
+          <path class="nail" d="M325 345 Q335 335 345 350 L340 360 L320 355 Z" transform="rotate(-15 329 410)"/>
+          <circle class="joint" cx="329" cy="410" r="13" />
+        </g>
+      </g>
     </g>
   </g>
-
-  <g id="middle" class="finger-group">
-    <rect class="skin" x="213" y="255" width="24" height="105" rx="10" />
-    <circle class="joint" cx="225" cy="360" r="14" />
-    <g class="distal">
-      <rect class="skin" x="213" y="140" width="24" height="125" rx="10" />
-      <circle class="joint" cx="225" cy="255" r="12" />
-    </g>
-  </g>
-
-  <g id="index" class="finger-group">
-    <rect class="skin" x="263" y="280" width="24" height="100" rx="10" />
-    <circle class="joint" cx="275" cy="380" r="14" />
-    <g class="distal">
-      <rect class="skin" x="263" y="170" width="24" height="120" rx="10" />
-      <circle class="joint" cx="275" cy="280" r="12" />
-    </g>
-  </g>
-
-  <g id="thumb-group">
-    <ellipse class="skin" cx="320" cy="480" rx="25" ry="35" transform="rotate(-20 320 480)"/>
-    
-    <rect class="skin" x="305" y="410" width="30" height="70" rx="12" transform="rotate(-15 320 480)" />
-    
-    <g class="thumb-tip">
-      <rect class="skin" x="315" y="340" width="28" height="70" rx="10" transform="rotate(-15 329 410)" />
-      <circle class="joint" cx="329" cy="410" r="13" /> </g>
-  </g>
-
 </svg>
 
 <script>
+  // 指先の追従用スタイルを追加
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Baseの動きに合わせてTipの親グループも動かす */
+    .is-holding .finger-base-tracker:nth-child(1) { transform: rotate(18deg) translate(5px, 0); } /* 小指 */
+    .is-holding .finger-base-tracker:nth-child(2) { transform: rotate(10deg); } /* 薬指 */
+    .is-holding .finger-base-tracker:nth-child(3) { transform: rotate(-2deg); } /* 中指 */
+    .is-holding .finger-base-tracker:nth-child(4) { transform: rotate(-15deg); } /* 人差し指 */
+    .finger-base-tracker { transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+  `;
+  document.head.appendChild(style);
+
   function setState(state) {
     const canvas = document.getElementById('canvas');
     const btnRelax = document.getElementById('btnRelax');
     const btnHold = document.getElementById('btnHold');
-
+    
     if (state === 'hold') {
       canvas.classList.add('is-holding');
       btnHold.classList.add('active');
