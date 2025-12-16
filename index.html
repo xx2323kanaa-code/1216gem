@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-<title>Robot Hand: Natural Grip with Palm Rotation</title>
+<title>Robot Hand: Final Corrected Grip</title>
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -16,7 +16,7 @@
     font-family: sans-serif;
   }
 
-  /* UI Controls (省略なし) */
+  /* UI Controls */
   #controls {
     position: fixed;
     bottom: 30px;
@@ -44,7 +44,7 @@
     box-shadow: 0 0 15px rgba(240, 192, 64, 0.4);
   }
 
-  /* SVG Styling (省略なし) */
+  /* SVG Styling */
   svg {
     height: 90vh;
     width: 100%;
@@ -70,15 +70,14 @@
   /* --- Animations (CSS Transforms) --- */
   
   /* 1. 全体の回転 (手のひらと指) */
-  /* 手首の上で手のひら全体が回転する軸を定義 */
   #hand-wrapper {
     transform-origin: 200px 480px; /* 手首のすぐ上あたりを軸に */
     transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  /* HOLD状態: 左に90度回転 */
+  /* HOLD状態: 小指側（右下方向）に回転 (画像の状態に合わせる) */
   .is-holding #hand-wrapper {
-    transform: rotate(90deg); 
+    transform: rotate(-15deg); /* わずかに小指側に傾ける */
   }
 
   /* 2. 指の動き */
@@ -89,39 +88,37 @@
   /* === HOLD State Animations === */
   .is-holding .phone { opacity: 1; }
 
-  /* 4本の指の「付け根(Base)」の動作を調整: ケータイを包み込む動き */
-  /* ケータイを掴む角度に指を傾ける */
+  /* 4本の指の動き: ケータイを包み込む（画像に合わせて、根元を大きく曲げる） */
   
   /* 小指 */
-  .is-holding #little-base { transform: rotate(18deg); } 
-  .is-holding #little-tip  { transform: rotate(-100deg); }
+  .is-holding #little-base { transform: rotate(20deg); } 
+  .is-holding #little-tip  { transform: rotate(-85deg); } /* 指先は深く曲がる */
 
   /* 薬指 */
   .is-holding #ring-base   { transform: rotate(10deg); }
-  .is-holding #ring-tip    { transform: rotate(-100deg); }
+  .is-holding #ring-tip    { transform: rotate(-85deg); }
 
   /* 中指 */
-  .is-holding #middle-base { transform: rotate(-2deg); }
-  .is-holding #middle-tip  { transform: rotate(-100deg); }
+  .is-holding #middle-base { transform: rotate(0deg); }
+  .is-holding #middle-tip  { transform: rotate(-80deg); }
 
   /* 人差し指 */
-  .is-holding #index-base  { transform: rotate(-15deg); }
-  .is-holding #index-tip   { transform: rotate(-100deg); }
+  .is-holding #index-base  { transform: rotate(-10deg); }
+  .is-holding #index-tip   { transform: rotate(-80deg); }
 
   /* 親指 (Thumb) - ケータイを支える動き */
   .is-holding #thumb-group { 
-    transform: translate(0, -10px) rotate(-30deg); 
+    transform: translate(0, -10px) rotate(-40deg); /* ケータイの側面に来るように移動＆回転 */
   }
   .is-holding .thumb-tip { 
-    transform: rotate(-15deg); 
+    transform: rotate(15deg); /* 親指の先を反らせてケータイに当てる */
   }
   
-  /* 指先の追従用スタイル（Baseの動きに合わせてTipの親グループも動かす） */
-  /* rotation()のみなので、translateは不要 */
-  .is-holding .finger-base-tracker:nth-child(1) { transform: rotate(18deg); } /* 小指 */
+  /* 指先の追従用スタイル */
+  .is-holding .finger-base-tracker:nth-child(1) { transform: rotate(20deg); } /* 小指 */
   .is-holding .finger-base-tracker:nth-child(2) { transform: rotate(10deg); } /* 薬指 */
-  .is-holding .finger-base-tracker:nth-child(3) { transform: rotate(-2deg); } /* 中指 */
-  .is-holding .finger-base-tracker:nth-child(4) { transform: rotate(-15deg); } /* 人差し指 */
+  .is-holding .finger-base-tracker:nth-child(3) { transform: rotate(0deg); } /* 中指 */
+  .is-holding .finger-base-tracker:nth-child(4) { transform: rotate(-10deg); } /* 人差し指 */
   .finger-base-tracker { transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
 
 </style>
@@ -146,8 +143,6 @@
       <path class="skin" d="M125 380 L110 460 Q140 560 200 560 Q260 560 290 460 L315 420 L275 380 L225 360 L175 360 Z" />
       <path class="dark-part" opacity="0.6" d="M150 420 Q200 450 250 420 L240 500 Q200 520 160 500 Z" />
       
-      <rect id="phone" class="phone" x="145" y="220" width="110" height="220" />
-
       <g id="little-base" class="finger-base" style="transform-origin: 130px 380px;">
         <rect class="skin" x="118" y="290" width="24" height="90" rx="10" />
         <circle class="joint" cx="130" cy="380" r="14" />
@@ -165,6 +160,8 @@
         <circle class="joint" cx="275" cy="380" r="14" />
       </g>
     </g>
+
+    <rect id="phone" class="phone" x="145" y="190" width="110" height="260" />
 
     <g id="layer-front">
       <g class="finger-base-tracker" style="transform-origin: 130px 380px;">
@@ -229,3 +226,4 @@
 
 </body>
 </html>
+
