@@ -3,284 +3,232 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-<title>Right Hand Phone Hold – Simplified Robotic</title>
+<title>Robot Hand: Relax vs Hold</title>
 <style>
-html,body{
-  margin:0;padding:0;width:100%;height:100%;
-  background:#000;overflow:hidden;
-}
-svg{width:100vw;height:100vh;display:block;}
-#ui{
-  position:fixed;left:0;right:0;bottom:0;
-  display:flex;gap:10px;justify-content:center;
-  padding:12px;background:rgba(0,0,0,.55);
-}
-button{
-  padding:10px 14px;border-radius:12px;
-  border:1px solid rgba(255,255,255,.2);
-  background:rgba(255,255,255,.1);
-  color:#eee;
-}
-#badge{
-  position:fixed;top:18px;left:50%;
-  transform:translateX(-50%);
-  color:#aaa;font-size:14px;letter-spacing:.1em;
-}
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
 
-/* 簡略化されたデザインスタイル */
-.handFill{
-  fill:#dcdcdc; /* ロボットハンドの本体色 */
-  stroke:#333;
-  stroke-width:2;
-}
-.joint{
-  fill:#555; /* 関節の色 */
-  stroke:#333;
-  stroke-width:2;
-}
-.fingerLine,.thumbLine{
-  stroke:#c0c0c0; /* 指の線色 */
-  stroke-width:12; /* 指を太くする */
-  stroke-linecap:round;
-  fill:none;
-}
-.nail{fill:#333; /* 爪の代わりに指先のディテール */ }
-.phone{
-  fill:#6495ed; /* スマホの色 */
-  rx:18;ry:18;
-  opacity:0;
-}
+  /* UI Controls */
+  #controls {
+    position: fixed;
+    bottom: 30px;
+    display: flex;
+    gap: 20px;
+    z-index: 100;
+  }
+  button {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #555; }
+  button.active { background: #f0c040; color: #000; border-color: #f0c040; }
+
+  /* SVG Styling */
+  svg {
+    height: 90vh;
+    width: 100%;
+    max-width: 600px;
+    /* デバッグ用ボーダーがあれば外してください */
+  }
+
+  /* --- Robot Parts Design --- */
+  .skin {
+    fill: #e6e2d3; /* 画像に近いベージュ */
+    stroke: #333;
+    stroke-width: 3px;
+  }
+  .dark-part {
+    fill: #666; /* メカニカルなグレー部分 */
+    stroke: #333;
+    stroke-width: 2px;
+  }
+  .joint {
+    fill: #444; /* 関節の円 */
+    stroke: #222;
+    stroke-width: 2px;
+  }
+  
+  /* The Phone (Blue Bar) */
+  .phone {
+    fill: #4da6ff;
+    stroke: #222;
+    stroke-width: 3px;
+    rx: 12; ry: 12; /* 角丸 */
+    opacity: 0;
+    transform: scale(0.8);
+    transform-origin: center;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* バウンス効果 */
+  }
+
+  /* --- Animation Logic (CSS Transitions) --- */
+  
+  /* 各パーツの基準点設定 */
+  .finger-group {
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .distal-phalanx {
+    /* 指先部分 */
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* === HOLD STATE DEFINITIONS === */
+  
+  /* スマホの出現 */
+  .is-holding .phone {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* 小指 (Little) */
+  #little { transform-origin: 130px 380px; }
+  #little .distal { transform-origin: 130px 290px; } /* 第二関節 */
+  
+  .is-holding #little { transform: rotate(15deg) translate(20px, 0); }
+  .is-holding #little .distal { transform: rotate(-100deg); }
+
+  /* 薬指 (Ring) */
+  #ring { transform-origin: 175px 360px; }
+  #ring .distal { transform-origin: 175px 260px; }
+  
+  .is-holding #ring { transform: rotate(8deg) translate(10px, 0); }
+  .is-holding #ring .distal { transform: rotate(-95deg); }
+
+  /* 中指 (Middle) */
+  #middle { transform-origin: 225px 360px; }
+  #middle .distal { transform-origin: 225px 255px; }
+
+  .is-holding #middle { transform: rotate(-5deg); }
+  .is-holding #middle .distal { transform: rotate(-95deg); }
+
+  /* 人差し指 (Index) */
+  #index { transform-origin: 275px 380px; }
+  #index .distal { transform-origin: 275px 280px; }
+
+  .is-holding #index { transform: rotate(-12deg); }
+  .is-holding #index .distal { transform: rotate(-95deg); }
+
+  /* 親指 (Thumb) */
+  /* 親指は構造が違うのでグループごと動かす */
+  #thumb-group {
+    transform-origin: 320px 480px; /* 手首付近の付け根 */
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .thumb-tip {
+    transform-origin: 360px 420px; /* 第一関節 */
+    transition: transform 0.6s;
+  }
+
+  /* 親指のHOLD: 内側に倒れ込み、指先を押さえつける */
+  .is-holding #thumb-group {
+    transform: rotate(-35deg) translate(-20px, -10px);
+  }
+  .is-holding .thumb-tip {
+    transform: rotate(-20deg);
+  }
+
 </style>
 </head>
-
 <body>
-<div id="badge">RELAX</div>
 
-<div id="ui">
-  <button onclick="go('RELAX')">RELAX</button>
-  <button onclick="go('HOLD')">HOLD</button>
-  <button onclick="go('LOCK')">LOCK</button>
-  <button onclick="go('MINI')">MINI</button>
+<div id="controls">
+  <button id="btnRelax" class="active" onclick="setState('relax')">RELAX</button>
+  <button id="btnHold" onclick="setState('hold')">HOLD</button>
 </div>
 
-<svg viewBox="0 0 400 720">
-
-<rect id="phone" class="phone" x="155" y="245" width="90" height="180"/>
-<circle id="phoneCam" cx="160" cy="255" r="2.5" fill="#333" opacity="0"/>
-
-<path class="handFill"
- d="M120 240 Q200 195 280 240 L280 365 Q200 405 120 365 Z"/>
-<path class="handFill"
- d="M150 365 Q200 410 250 365 L250 455 Q200 485 150 455 Z"/>
-
-<g id="fingersGroup">
-  <line id="index"  class="fingerLine"/>
-  <line id="middle" class="fingerLine"/>
-  <line id="ring"   class="fingerLine"/>
-  <line id="little" class="fingerLine"/>
+<svg viewBox="0 0 400 700" id="canvas">
   
-  <g id="fingerJoints"></g>
-</g>
+  <path class="dark-part" d="M140 540 L140 650 L260 650 L260 540 Z" />
+  <ellipse class="joint" cx="200" cy="540" rx="60" ry="20" /> <path class="skin" d="
+    M130 380 
+    L110 460 
+    Q140 560 200 560 
+    Q260 560 290 460 
+    L320 420 
+    L275 380 
+    L225 360 
+    L175 360 
+    Z" />
+  <path class="dark-part" opacity="0.5" d="M150 420 Q200 450 250 420 L240 500 Q200 520 160 500 Z" />
 
-<g id="thumbGroup">
-  <line id="thumbA" class="thumbLine"/>
-  <line id="thumbB" class="thumbLine"/>
-  <circle id="joint_thumbA" class="joint" r="6"/>
-  <circle id="joint_thumbB" class="joint" r="6"/>
-</g>
+  <rect id="phone" class="phone" x="140" y="180" width="120" height="240" />
 
-<g id="nails">
-  <polygon id="n_index" class="nail"/>
-  <polygon id="n_middle" class="nail"/>
-  <polygon id="n_ring" class="nail"/>
-  <polygon id="n_little" class="nail"/>
-  <polygon id="n_thumb" class="nail"/>
-</g>
+  <g id="little" class="finger-group">
+    <rect class="skin" x="118" y="290" width="24" height="90" rx="10" />
+    <circle class="joint" cx="130" cy="380" r="14" /> <g class="distal">
+      <rect class="skin" x="118" y="200" width="24" height="100" rx="10" />
+      <circle class="joint" cx="130" cy="290" r="12" /> </g>
+  </g>
+
+  <g id="ring" class="finger-group">
+    <rect class="skin" x="163" y="260" width="24" height="100" rx="10" />
+    <circle class="joint" cx="175" cy="360" r="14" />
+    <g class="distal">
+      <rect class="skin" x="163" y="150" width="24" height="120" rx="10" />
+      <circle class="joint" cx="175" cy="260" r="12" />
+    </g>
+  </g>
+
+  <g id="middle" class="finger-group">
+    <rect class="skin" x="213" y="255" width="24" height="105" rx="10" />
+    <circle class="joint" cx="225" cy="360" r="14" />
+    <g class="distal">
+      <rect class="skin" x="213" y="140" width="24" height="125" rx="10" />
+      <circle class="joint" cx="225" cy="255" r="12" />
+    </g>
+  </g>
+
+  <g id="index" class="finger-group">
+    <rect class="skin" x="263" y="280" width="24" height="100" rx="10" />
+    <circle class="joint" cx="275" cy="380" r="14" />
+    <g class="distal">
+      <rect class="skin" x="263" y="170" width="24" height="120" rx="10" />
+      <circle class="joint" cx="275" cy="280" r="12" />
+    </g>
+  </g>
+
+  <g id="thumb-group">
+    <ellipse class="skin" cx="320" cy="480" rx="25" ry="35" transform="rotate(-20 320 480)"/>
+    
+    <rect class="skin" x="305" y="410" width="30" height="70" rx="12" transform="rotate(-15 320 480)" />
+    
+    <g class="thumb-tip">
+      <rect class="skin" x="315" y="340" width="28" height="70" rx="10" transform="rotate(-15 329 410)" />
+      <circle class="joint" cx="329" cy="410" r="13" /> </g>
+  </g>
 
 </svg>
 
 <script>
-/* ===== 基本設定（元のコードから変更なし） ===== */
-const baseY = 245;
-const pivot = {x:200,y:330};
+  function setState(state) {
+    const canvas = document.getElementById('canvas');
+    const btnRelax = document.getElementById('btnRelax');
+    const btnHold = document.getElementById('btnHold');
 
-const F = {
- index:  {x:215,relax:100,hold:62,lock:50,mini:58},
- middle: {x:195,relax:92, hold:60,lock:52,mini:56},
- ring:   {x:175,relax:82, hold:56,lock:48,mini:52},
- little: {x:155,relax:72, hold:52,lock:46,mini:50}
-};
-
-const Thumb = {
- base:{x:270,y:310},
- RELAX:{mid:{x:255,y:280},tip:{x:240,y:255}},
- HOLD: {mid:{x:248,y:320},tip:{x:230,y:330}},
- LOCK: {mid:{x:252,y:340},tip:{x:238,y:360}},
- MINI: {mid:{x:258,y:330},tip:{x:250,y:345}}
-};
-
-const rot = {
- RELAX:0,
- HOLD:-90,
- LOCK:-90,
- MINI:-90
-};
-
-let current="RELAX";
-
-/* ===== 沈み込み（元のコードから変更なし） ===== */
-const sink = {
- RELAX:{dx:0,  dy:0},
- HOLD: {dx:10, dy:6},
- LOCK: {dx:22, dy:10},
- MINI: {dx:16, dy:8}
-};
-
-/* ===== 描画関数（関節円の配置ロジックを追加） ===== */
-
-// 指の関節円を動的に生成/削除するヘルパー関数
-function updateJoints(id, len, x1, y1, state){
-  const jointGroup = document.getElementById("fingerJoints");
-  const numJoints = 3;
-  const segmentLength = len / (numJoints + 1); // 4つのセグメントに分割
-
-  // 既存の関節円を削除
-  document.querySelectorAll(`.joint-${id}`).forEach(el => el.remove());
-
-  if(state === "RELAX") {
-    // RELAX状態では、指の線の上に3つの関節円を配置
-    for(let i = 1; i <= numJoints; i++){
-      const cx = x1;
-      const cy = y1 - i * segmentLength;
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', cx);
-      circle.setAttribute('cy', cy);
-      circle.setAttribute('r', 5);
-      circle.setAttribute('class', `joint joint-${id}`);
-      jointGroup.appendChild(circle);
+    if (state === 'hold') {
+      canvas.classList.add('is-holding');
+      btnHold.classList.add('active');
+      btnRelax.classList.remove('active');
+    } else {
+      canvas.classList.remove('is-holding');
+      btnRelax.classList.add('active');
+      btnHold.classList.remove('active');
     }
   }
-  // HOLD/LOCK/MINI状態では、回転後の座標計算が複雑になるため、今回は簡略化し、RELAX時のみ表示
-  // 必要に応じて、回転後の座標計算（行列変換）を実装することで対応可能
-}
-
-
-function drawFinger(id,len,state){
- const f=F[id];
- const s=sink[state] || sink.RELAX;
-
- const x1=f.x - s.dx;
- const y1=baseY + s.dy;
-
- const x2=x1;
- const y2=y1-len;
-
- const el=document.getElementById(id);
- el.setAttribute("x1",x1);
- el.setAttribute("y1",y1);
- el.setAttribute("x2",x2);
- el.setAttribute("y2",y2);
- 
- updateJoints(id, len, x1, y1, state); // 関節円の更新
-
- return {x:x2,y:y2};
-}
-
-function nail(id,x,y,dir){
- const s=7;
- const dx=Math.sin(dir)*10;
- const dy=-Math.cos(dir)*10;
- // 指先のディテール（爪の代わりに）
- document.getElementById(id).setAttribute(
-  "points",
-  `${x},${y} ${x-dx-s},${y-dy-s} ${x-dx+s},${y-dy-s}`
- );
-}
-
-function clearNails(){
- document.querySelectorAll(".nail").forEach(n=>n.setAttribute("points",""));
-}
-
-function drawThumb(state){
- const p=Thumb[state];
- 
- // 親指の線
- document.getElementById("thumbA")
-  .setAttribute("x1",Thumb.base.x);
- document.getElementById("thumbA")
-  .setAttribute("y1",Thumb.base.y);
- document.getElementById("thumbA")
-  .setAttribute("x2",p.mid.x);
- document.getElementById("thumbA")
-  .setAttribute("y2",p.mid.y);
- document.getElementById("thumbB")
-  .setAttribute("x1",p.mid.x);
- document.getElementById("thumbB")
-  .setAttribute("y1",p.mid.y);
- document.getElementById("thumbB")
-  .setAttribute("x2",p.tip.x);
- document.getElementById("thumbB")
-  .setAttribute("y2",p.tip.y);
-  
-  // 親指の関節円
-  document.getElementById("joint_thumbA").setAttribute("cx", p.mid.x);
-  document.getElementById("joint_thumbA").setAttribute("cy", p.mid.y);
-  // 親指の付け根の関節円は固定
-  // document.getElementById("joint_thumbB").setAttribute("cx", Thumb.base.x);
-  // document.getElementById("joint_thumbB").setAttribute("cy", Thumb.base.y);
-  document.getElementById("joint_thumbB").setAttribute("cx", p.tip.x);
-  document.getElementById("joint_thumbB").setAttribute("cy", p.tip.y);
-
-
- if(state==="RELAX"){
-  nail("n_thumb",p.tip.x,p.tip.y,0);
-  document.getElementById("joint_thumbA").style.opacity = 1;
-  document.getElementById("joint_thumbB").style.opacity = 1;
- }else{
-  // HOLD状態では親指の関節を非表示にする（手の平で隠れる想定）
-  document.getElementById("joint_thumbA").style.opacity = 0;
-  document.getElementById("joint_thumbB").style.opacity = 0;
- }
-}
-
-/* ===== 状態遷移（元のコードから変更なし） ===== */
-function apply(state){
- current=state;
- document.getElementById("badge").textContent=state;
- 
- // 電話とカメラの表示/非表示を切り替え
- document.getElementById("phone").style.opacity=
-  (state==="RELAX")?0:1;
- document.getElementById("phoneCam").style.opacity=
-  (state==="RELAX")?0:1;
-
- const g=document.getElementById("fingersGroup");
- g.setAttribute(
-  "transform",
-  `rotate(${rot[state]} ${pivot.x} ${pivot.y})`
- );
-
- clearNails();
-
- if(state==="RELAX"){
-  for(const k in F){
-   const p=drawFinger(k,F[k].relax,"RELAX");
-   nail("n_"+k,p.x,p.y,0);
-  }
-  drawThumb("RELAX");
- }else{
-  for(const k in F){
-   drawFinger(k,F[k][state.toLowerCase()],state);
-  }
-  drawThumb(state);
-  // HOLD/LOCK/MINIでは、指の関節円は非表示
-  document.querySelectorAll('.joint').forEach(el => el.style.opacity = 0);
- }
-}
-
-function go(state){ apply(state); }
-
-apply("RELAX");
 </script>
+
 </body>
 </html>
